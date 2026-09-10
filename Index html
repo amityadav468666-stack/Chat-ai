@@ -1,1 +1,1149 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <title>Chat AI — AI Search & Chat</title>
+
+  <meta name="description"
+        content="Chat AI - AI Search, Web Search, Sources, Voice Search and File Analysis">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #15171a;
+      --muted: #68707c;
+      --border: #e1e5eb;
+      --primary: #2563eb;
+      --primary2: #1d4ed8;
+      --user: #e8f0ff;
+      --assistant: #ffffff;
+      --danger: #dc2626;
+      --shadow: 0 4px 20px rgba(0,0,0,.06);
+    }
+
+    body.dark {
+      --bg: #0d1117;
+      --card: #161b22;
+      --text: #f1f5f9;
+      --muted: #9ca3af;
+      --border: #30363d;
+      --primary: #3b82f6;
+      --primary2: #2563eb;
+      --user: #172554;
+      --assistant: #161b22;
+      --shadow: 0 4px 20px rgba(0,0,0,.25);
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      min-height: 100vh;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 280px;
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 100;
+      transition: .25s;
+    }
+
+    .logo {
+      font-size: 23px;
+      font-weight: 800;
+      padding: 10px 8px 18px;
+    }
+
+    .new-chat {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 13px;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+
+    .new-chat:hover {
+      background: var(--primary2);
+    }
+
+    .history-title {
+      color: var(--muted);
+      font-size: 13px;
+      padding: 8px;
+    }
+
+    .history {
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+
+    .history-item:hover {
+      background: var(--bg);
+    }
+
+    .history-question {
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-size: 14px;
+    }
+
+    .delete-chat {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 4px;
+    }
+
+    .delete-chat:hover {
+      color: var(--danger);
+    }
+
+    .sidebar-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    .side-btn {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      padding: 10px;
+      border-radius: 9px;
+      margin-top: 7px;
+      text-align: left;
+    }
+
+    .side-btn:hover {
+      background: var(--bg);
+    }
+
+    /* MAIN */
+    .main {
+      margin-left: 280px;
+      width: calc(100% - 280px);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      height: 64px;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .menu-btn {
+      display: none;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 24px;
+    }
+
+    .top-title {
+      font-weight: 700;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 9px;
+      padding: 8px 11px;
+    }
+
+    .login-btn {
+      border: 0;
+      background: var(--primary);
+      color: white;
+      border-radius: 9px;
+      padding: 9px 13px;
+      font-weight: 700;
+    }
+
+    /* CHAT */
+    .chat-area {
+      flex: 1;
+      width: 100%;
+      max-width: 900px;
+      margin: auto;
+      padding: 25px 18px 180px;
+    }
+
+    .welcome {
+      text-align: center;
+      padding: 70px 15px 30px;
+    }
+
+    .welcome-icon {
+      font-size: 55px;
+    }
+
+    .welcome h1 {
+      font-size: 34px;
+      margin: 12px 0 8px;
+    }
+
+    .welcome p {
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .message {
+      display: flex;
+      margin: 18px 0;
+      gap: 12px;
+    }
+
+    .avatar {
+      min-width: 36px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+    }
+
+    .message.user .avatar {
+      background: #64748b;
+    }
+
+    .message-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .message-name {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--muted);
+    }
+
+    .bubble {
+      background: var(--assistant);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 14px;
+      line-height: 1.65;
+      box-shadow: var(--shadow);
+      overflow-wrap: anywhere;
+    }
+
+    .user .bubble {
+      background: var(--user);
+    }
+
+    .answer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .small-btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      padding: 6px 9px;
+      border-radius: 7px;
+      font-size: 12px;
+    }
+
+    /* SOURCES */
+    .sources {
+      margin-top: 12px;
+    }
+
+    .sources-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .source-card {
+      display: block;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      text-decoration: none;
+      border-radius: 10px;
+      padding: 10px;
+      margin: 7px 0;
+    }
+
+    .source-card:hover {
+      border-color: var(--primary);
+    }
+
+    .source-title {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .source-url {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* LOADING */
+    .loading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      padding: 12px;
+    }
+
+    .dots span {
+      display: inline-block;
+      animation: blink 1.2s infinite;
+      font-weight: bold;
+    }
+
+    .dots span:nth-child(2) {
+      animation-delay: .2s;
+    }
+
+    .dots span:nth-child(3) {
+      animation-delay: .4s;
+    }
+
+    @keyframes blink {
+      0%, 100% {
+        opacity: .2;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+
+    /* INPUT AREA */
+    .composer-wrap {
+      position: fixed;
+      left: 280px;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        transparent,
+        var(--bg) 25%
+      );
+      padding: 25px 18px 14px;
+      z-index: 40;
+    }
+
+    .composer {
+      max-width: 900px;
+      margin: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 10px;
+    }
+
+    .file-preview {
+      display: none;
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .file-preview.show {
+      display: block;
+    }
+
+    .textarea-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    #question {
+      flex: 1;
+      border: 0;
+      outline: none;
+      resize: none;
+      background: transparent;
+      color: var(--text);
+      min-height: 46px;
+      max-height: 150px;
+      padding: 10px;
+    }
+
+    .tool-btn {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .send-btn {
+      width: 45px;
+      height: 42px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--primary);
+      color: white;
+      font-size: 18px;
+    }
+
+    .send-btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .composer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 7px 0;
+    }
+
+    .language {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 7px;
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    /* LOGIN MODAL */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      z-index: 300;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-box {
+      width: min(440px, 100%);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 15px 50px rgba(0,0,0,.25);
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .close-btn {
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 22px;
+    }
+
+    .google-btn {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .user-info {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .user-photo {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 8px;
+    }
+
+    .danger-btn {
+      width: 100%;
+      border: 0;
+      background: var(--danger);
+      color: white;
+      padding: 11px;
+      border-radius: 9px;
+      margin-top: 8px;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 90px;
+      background: #111827;
+      color: white;
+      padding: 11px 15px;
+      border-radius: 9px;
+      display: none;
+      z-index: 500;
+      max-width: 350px;
+    }
+
+    .toast.show {
+      display: block;
+    }
+
+    /* MOBILE */
+    @media (max-width: 760px) {
+      .sidebar {
+        transform: translateX(-100%);
+        box-shadow: 10px 0 30px rgba(0,0,0,.15);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main {
+        margin-left: 0;
+        width: 100%;
+      }
+
+      .menu-btn {
+        display: block;
+      }
+
+      .composer-wrap {
+        left: 0;
+      }
+
+      .welcome {
+        padding-top: 40px;
+      }
+
+      .welcome h1 {
+        font-size: 27px;
+      }
+
+      .topbar {
+        padding: 0 10px;
+      }
+
+      .top-title {
+        font-size: 14px;
+      }
+
+      .login-btn {
+        padding: 8px;
+        font-size: 12px;
+      }
+
+      .hint {
+        display: none;
+      }
+
+      .chat-area {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="logo">
+      🤖 Chat AI
+    </div>
+
+    <button class="new-chat" id="newChatBtn">
+      ＋ New Chat
+    </button>
+
+    <div class="history-title">
+      Chat History
+    </div>
+
+    <div class="history" id="historyList">
+      <div style="color:var(--muted);padding:10px;font-size:13px;">
+        Login करके history देखें
+      </div>
+    </div>
+
+    <div class="sidebar-bottom">
+
+      <button class="side-btn" id="deleteAllBtn">
+        🗑️ Delete All History
+      </button>
+
+      <button class="side-btn" id="themeBtn">
+        🌙 Dark / Light
+      </button>
+
+      <button class="side-btn" id="sidebarLoginBtn">
+        👤 Login / Signup
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <header class="topbar">
+
+      <div class="top-actions">
+
+        <button class="menu-btn" id="menuBtn">
+          ☰
+        </button>
+
+        <div class="top-title">
+          Chat AI
+        </div>
+
+      </div>
+
+      <div class="top-actions">
+
+        <button class="icon-btn" id="clearBtn">
+          Clear
+        </button>
+
+        <button class="login-btn" id="loginBtn">
+          Login
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- CHAT AREA -->
+    <section class="chat-area" id="chatArea">
+
+      <div class="welcome" id="welcome">
+
+        <div class="welcome-icon">
+          🤖
+        </div>
+
+        <h1>Chat AI</h1>
+
+        <p>
+          AI Search • Web Search • Sources • Voice • File Analysis
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- COMPOSER -->
+    <div class="composer-wrap">
+
+      <form class="composer" id="chatForm">
+
+        <div class="file-preview" id="filePreview"></div>
+
+        <div class="textarea-row">
+
+          <button
+            type="button"
+            class="tool-btn"
+            id="fileBtn"
+            title="PDF / Image upload">
+            📎
+          </button>
+
+          <input
+            type="file"
+            id="fileInput"
+            accept=".pdf,.png,.jpg,.jpeg,.webp"
+            hidden
+          >
+
+          <textarea
+            id="question"
+            rows="1"
+            placeholder="Ask anything..."
+            autocomplete="off"></textarea>
+
+          <button
+            type="button"
+            class="tool-btn"
+            id="voiceBtn"
+            title="Voice Search">
+            🎤
+          </button>
+
+          <button
+            type="submit"
+            class="send-btn"
+            id="sendBtn"
+            title="Send">
+            ➤
+          </button>
+
+        </div>
+
+        <div class="composer-bottom">
+
+          <select class="language" id="language">
+            <option value="hi">हिंदी</option>
+            <option value="en">English</option>
+          </select>
+
+          <div class="hint">
+            Enter = Send • Shift + Enter = New line
+          </div>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </main>
+
+</div>
+
+
+<!-- LOGIN MODAL -->
+<div class="modal" id="loginModal">
+
+  <div class="modal-box">
+
+    <div class="modal-head">
+
+      <h2>👤 Chat AI Login</h2>
+
+      <button class="close-btn" id="closeLogin">
+        ×
+      </button>
+
+    </div>
+
+    <div id="loggedOutBox">
+
+      <p style="color:var(--muted);">
+        Google account से login करके chat history save करें।
+      </p>
+
+      <button class="google-btn" id="googleLoginBtn">
+        🔵 Continue with Google
+      </button>
+
+    </div>
+
+
+    <div id="loggedInBox" style="display:none;">
+
+      <div class="user-info">
+
+        <img
+          id="userPhoto"
+          class="user-photo"
+          src=""
+          alt="User">
+
+        <div>
+          <b id="userName"></b>
+        </div>
+
+        <div
+          id="userEmail"
+          style="color:var(--muted);font-size:13px;">
+        </div>
+
+      </div>
+
+      <button class="danger-btn" id="logoutBtn">
+        Logout
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
+<script type="module">
+
+  /* =====================================================
+     FIREBASE
+     ===================================================== */
+
+  import {
+    initializeApp
+  } from
+  "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithRedirect,
+    getRedirectResult,
+    signOut,
+    onAuthStateChanged
+  } from
+  "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    deleteDoc,
+    doc,
+    query,
+    orderBy,
+    limit,
+    serverTimestamp
+  } from
+  "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+
+  /* =====================================================
+     YOUR FIREBASE CONFIG
+     ===================================================== */
+
+  const firebaseConfig = {
+
+    apiKey:
+      "AIzaSyCjqV35yYSLIQqNJPisVEjqEUev4S_7RA",
+
+    authDomain:
+      "chat-ai-6a0eb.firebaseapp.com",
+
+    projectId:
+      "chat-ai-6a0eb",
+
+    storageBucket:
+      "chat-ai-6a0eb.firebasestorage.app",
+
+    messagingSenderId:
+      "634588884852",
+
+    appId:
+      "1:634588884852:web:24d5cb696bf5a7428c4621",
+
+    measurementId:
+      "G-Y2BV7QCYS1"
+
+  };
+
+
+  const firebaseApp =
+    initializeApp(firebaseConfig);
+
+
+  const auth =
+    getAuth(firebaseApp);
+
+
+  const db =
+    getFirestore(firebaseApp);
+
+
+  const googleProvider =
+    new GoogleAuthProvider();
+
+
+  /* =====================================================
+     CLOUDFLARE WORKER URL
+     ===================================================== */
+
+  const WORKER_URL =
+    "https://chatai879.amityadav468666.workers.dev";
+
+
+  /* =====================================================
+     STATE
+     ===================================================== */
+
+  let currentUser = null;
+
+  let currentMessages = [];
+
+  let selectedFile = null;
+
+  let isLoading = false;
+
+
+  /* =====================================================
+     ELEMENTS
+     ===================================================== */
+
+  const $ = id =>
+    document.getElementById(id);
+
+
+  const chatArea =
+    $("chatArea");
+
+  const welcome =
+    $("welcome");
+
+  const questionInput =
+    $("question");
+
+  const chatForm =
+    $("chatForm");
+
+  const sendBtn =
+    $("sendBtn");
+
+  const fileInput =
+    $("fileInput");
+
+  const filePreview =
+    $("filePreview");
+
+  const historyList =
+    $("historyList");
+
+  const loginModal =
+    $("loginModal");
+
+
+  /* =====================================================
+     TOAST
+     ===================================================== */
+
+  function toast(message) {
+
+    const el =
+      $("toast");
+
+    el.textContent =
+      message;
+
+    el.classList.add("show");
+
+    setTimeout(() => {
+
+      el.classList.remove("show");
+
+    }, 3000);
+
+  }
+
+
+  /* =====================================================
+     LOGIN MODAL
+     ===================================================== */
+
+  function openLogin() {
+
+    loginModal.classList.add("show");
+
+  }
+
+
+  function closeLogin() {
+
+    loginModal.classList.remove("show");
+
+  }
+
+
+  $("loginBtn").addEventListener(
+    "click",
+    openLogin
+  );
+
+
+  $("sidebarLoginBtn").addEventListener(
+    "click",
+    openLogin
+  );
+
+
+  $("closeLogin").addEventListener(
+    "click",
+    closeLogin
+  );
+
+
+  loginModal.addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target === loginModal
+      ) {
+
+        closeLogin();
+
+      }
+
+    }
+  );
+
+
+  /* =====================================================
+     GOOGLE LOGIN
+     ===================================================== */
+
+  $("googleLoginBtn").addEventListener(
+    "click",
+    async () => {
+
+      try {
+
+        await signInWithRedirect(
+          auth,
+          googleProvider
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        toast(
+          "Google Login error: " +
+          error.message
+        );
+
+      }
+
+    }
+  );
+
+
+  /* =====================================================
+     REDIRECT RESULT
+     ===================================================== */
+
+  try {
+
+    await getRedirectResult(auth);
+
+  } catch (error) {
+
+    console.error(
+      "Redirect login error:",
+      error
+    );
+
+  }
+
+
+  /* =====================================================
+     LOGOUT
+     ===================================================== */
+
+  $("logoutBtn").addEventListener(
+    "click",
+    async () => {
+
+      try {
+
+        await signOut(auth);
+
+        closeLogin();
+
+        toast(
+          "Logout successful"
+        );
+
+      } catch (error) {
+
+   
